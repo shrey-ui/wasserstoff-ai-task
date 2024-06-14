@@ -14,7 +14,7 @@ def get_blog_data(site_url):
 
 	blog_data= [(post['id'], post['title']['rendered'], post['content']['rendered'])
 	 			for post in posts]
-
+	print(blog_data)
 	return blog_data
 
 model= SentenceTransformer("sentence-transformers/multi-qa-MiniLM-L6-dot-v1")
@@ -25,7 +25,9 @@ model= SentenceTransformer("sentence-transformers/multi-qa-MiniLM-L6-dot-v1")
 def generate_vector_spaces(blog_content):
 	blog_data = [data[2] for data in blog_content]
 	embeddings= model.encode(blog_data, convert_to_tensor= True)
+	print(embeddings.shape)
 	return embeddings
 
 embeddings = generate_vector_spaces(get_blog_data("http://wasserstoff-test-site.local:10003"))
-print(embeddings)
+
+#print(embeddings)
