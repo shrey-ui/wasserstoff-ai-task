@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup as bs
 import base64
 from collections import Counter
 import random
+import os
 
 # This .py file aims to create a WordPress Blog which will
 # help us in creating a RAG based ChatBot. 
@@ -10,7 +11,7 @@ import random
 
 # Load the text file (assuming it's saved locally)
 for corpus in os.listdir("./corpus/"):
-	with open(f'{corpus}', 'r', encoding='utf-8') as file:
+	with open(f'./corpus/{corpus}', 'r', encoding='utf-8') as file:
 		text = file.read()
 
 	# Split the text into chunks
