@@ -3,3 +3,5 @@ faiss-cpu
 sentence-transformers
 requests
 flask
+bs4
+sentencepiece

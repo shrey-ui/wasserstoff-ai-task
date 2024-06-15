@@ -1,8 +1,10 @@
 from sentence_transformers import SentenceTransformer
+from sentence_transformers.util import cos_sim
 import numpy  as np 
 import pandas as pd 
 import requests
 import faiss
+import re
 
 
 # Here it is best if we use a Pre-trained Model
@@ -12,14 +14,20 @@ import faiss
 
 
 class FAISSVectorDB():
-	def __init__(self, site_url, model):
+	def __init__(self, site_url, model, chunk_size):
 		super().__init__()
 		self.wp_site_url = site_url
 		self.model_name = model
 		self.posts = []
-		self.embedding_model= SentenceTransformer(f"sentence-transformers/{model}")
+		self.chunks_list = []
+		self.chunk_size = chunk_size
+		self.embedding_model= SentenceTransformer(f"{model}", trust_remote_code=True)
 		self.embeddings = {}
 
+	def split_text(self, text):
+	    words = text.split()
+	    for i in range(0, len(words), self.chunk_size):
+	        yield ' '.join(words[i:i+self.chunk_size])
 
 	def get_blog_data(self, site_url):
 
@@ -36,17 +44,31 @@ class FAISSVectorDB():
 			posts.extend(response.json())
 			blog_data= [(post['id'], post['title']['rendered'], post['content']['rendered'])
 						for post in posts]
+
+
 			if len(response.json()) < 100:
 				break
 			#print(blog_data)
+		print(f"No of Posts got - {len(posts)}")
 		self.posts = posts
 
 	# this is the generation of embeddings part using the selected model
 	def generate_vector_spaces(self, post):
 		blog_data = post['content']['rendered']
 		blog_id= post['id']
+
+		# Here we reintroduce chunking - this is because of 2 reasons
+		# 1. The blog size we have is relatively large (~1000 words). 
+
+		# 2. To answer a lot of questions smaller chunks will enable the LLM
+		# 		to provide more concise answers
+
+
 		if blog_id not in self.embeddings:
-			self.embeddings[blog_id] = self.embedding_model.encode(blog_data, convert_to_tensor= True)
+			chunks= self.split_text(blog_data)
+			for chunk in chunks:
+				self.chunks_list.append(chunk)
+				self.embeddings[len(self.embeddings.keys())] = self.embedding_model.encode(re.sub('\W+', '', chunk))
 		else:
 			print("Blog Already has Embedding Included")
 
@@ -77,32 +99,38 @@ class FAISSVectorDB():
 	def load_index_db(self, filename = "faiss_emb_indices.index"):
 		return faiss.read_index(filename)
 
+		# main function that creates the db
+
 	def init_vector_db(self):
 		indices_to_create = self.create_faiss()
 		print(indices_to_create)
 		self.save_indices(indices_to_create)
 		with open('post_ids.txt', 'w') as hist_id:
-			for post_id in self.embeddings:
-				hist_id.write(f"{post_id}\n")
+			for chunk_id in self.embeddings:
+				hist_id.write(f"{chunk_id}\n")
 		print("FAISS VECTOR DB HAS BEEN CREATED SUCCESSFULLY")
+
+# function that retrieves similar posts
 
 def find_simposts_in_db(db, query, k):
 	query_embed= db.embedding_model.encode([query])
 	index= db.load_index_db()
 	distances, indices = index.search(np.array(query_embed).astype(np.float32), k)
-	similar_posts = [db.posts[idx] for idx in indices[0]]
-	return similar_posts
+	similar_chunks = [db.chunks_list[idx] for idx in indices[0]]
+	return similar_chunks
 
 if __name__ == "__main__":
 	site_url = "http://wasserstoff-test-site.local:10003"
-	embedding_model = "multi-qa-MiniLM-L6-dot-v1"
-	db = FAISSVectorDB(site_url, embedding_model)
+	embedding_model = "Alibaba-NLP/gte-large-en-v1.5"
+	chunk_size= 256
+	db = FAISSVectorDB(site_url, embedding_model, chunk_size)
 	db.init_vector_db()
-	similar_posts = find_simposts_in_db(db, "Which Animals were present during the late Jurassic Period?", 3)
+	similar_posts = find_simposts_in_db(db, "Which Animals were present during the late Jurassic Period?", 5)
 	for post in similar_posts:
-		print(post['title']['rendered'])
-		print(post['content']['rendered'])
-		print("\n\n")
+		print(post, end = "\n\n\n")
+		# print(post['title']['rendered'])
+		# print(post['content']['rendered'])
+		# print("\n\n")
 #embeddings = generate_vector_spaces(get_blog_data("http://wasserstoff-test-site.local:10003"))
 
 #print(embeddings)
