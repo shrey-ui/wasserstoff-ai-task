@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from transformers import RagTokenizer, RagSequenceForGeneration, RagRetriever
-from RAG_COT import FAISSVectorDB, find_simposts_in_db
+from gen_vector_db import FAISSVectorDB, find_simposts_in_db
 from torch import cuda
 import torch
 import requests
@@ -21,7 +21,7 @@ embedding_list = list(db.embeddings.values())
 
 # Retrieving Similar posts and then prompting the LLM
 
-def generate_rag_response(query):
+def generate_rag_response(db, query):
 
 	sim_posts = find_simposts_in_db(db, query, 5)
 	context = ' '.join(f"{post}\n\n" for post in sim_posts)
@@ -66,4 +66,4 @@ def generate_rag_response(query):
 
 
 query= "Can you name some really big Dinosaurs?"
-print(generate_rag_response(query))
+print(generate_rag_response(db,query))
