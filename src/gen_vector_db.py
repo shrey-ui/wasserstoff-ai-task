@@ -128,9 +128,9 @@ if __name__ == "__main__":
 	similar_posts = find_simposts_in_db(db, "Which Animals were present during the late Jurassic Period?", 5)
 	for post in similar_posts:
 		print(post, end = "\n\n\n")
-		# print(post['title']['rendered'])
-		# print(post['content']['rendered'])
-		# print("\n\n")
-#embeddings = generate_vector_spaces(get_blog_data("http://wasserstoff-test-site.local:10003"))
+		print(post['title']['rendered'])
+		print(post['content']['rendered'])
+		print("\n\n")
+	embeddings = generate_vector_spaces(get_blog_data("http://wasserstoff-test-site.local:10003"))
 
-#print(embeddings)
+	print(embeddings)

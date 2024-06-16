@@ -5,3 +5,5 @@ requests
 flask
 bs4
 sentencepiece
+flask-cors
+waitress

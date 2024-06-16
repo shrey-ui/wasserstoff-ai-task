@@ -7,23 +7,11 @@ import requests
 
 
 
-device= f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
-
-site_url = "http://wasserstoff-test-site.local:10003"
-embedding_model = "Alibaba-NLP/gte-large-en-v1.5"
-db = FAISSVectorDB(site_url, embedding_model, 128)
-db.init_vector_db()
-
-#loads the db - for test purposes
-
-index= db.load_index_db()
-embedding_list = list(db.embeddings.values())
-
 # Retrieving Similar posts and then prompting the LLM
 
-def generate_rag_response(db, query):
+def generate_rag_response(db, query, sim_posts):
 
-	sim_posts = find_simposts_in_db(db, query, 10)
+	#sim_posts = find_simposts_in_db(db, query, 10)
 	context = ' '.join(f"{post}\n\n" for post in sim_posts)
 
 	initial_prompt = f'''[INST] 
@@ -114,5 +102,21 @@ def generate_rag_response(db, query):
 
 
 
-query= "Name some birds found in the Himalayas in India?"
-print(generate_rag_response(db,query))
+if __name__ == "__main__":
+
+	print("dfdg")
+
+	device= f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
+
+	site_url = "http://wasserstoff-test-site.local:10003"
+	embedding_model = "Alibaba-NLP/gte-large-en-v1.5"
+	db = FAISSVectorDB(site_url, embedding_model, 128)
+	db.init_vector_db()
+
+	#loads the db - for test purposes
+
+	index= db.load_index_db()
+	embedding_list = list(db.embeddings.values())
+
+	query= "Name some birds found in the Himalayas in India?"
+	print(generate_rag_response(db,query))
