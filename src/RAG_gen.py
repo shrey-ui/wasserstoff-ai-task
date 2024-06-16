@@ -23,19 +23,66 @@ embedding_list = list(db.embeddings.values())
 
 def generate_rag_response(db, query):
 
-	sim_posts = find_simposts_in_db(db, query, 5)
+	sim_posts = find_simposts_in_db(db, query, 10)
 	context = ' '.join(f"{post}\n\n" for post in sim_posts)
 
-	prompt_template = f'''[INST] 
-					  You are going to provide answers to certain questions in a concise manner. To help answer
-					  these questions you will be provided with a context. You will ONLY use this context to provide
-					  the answers. Please don't provide any hint at all that you are using this context for your answer.
+	initial_prompt = f'''[INST] 
+					Try to answer this question/instruction with step-by-step thoughts 
+					and make the answer structural. Respond to the instruction directly. DO NOT add
+					any additional explanations and introducements in the answer. 
 
 					[Question] - {query}
 
-					[Context] - {context}
+					Explain your Reasoning Step-by-Step on why you came to the conclusion. 
 					
 					[/INST]
+	'''
+
+
+	zero_COT_prompt = {
+	"inputs": f"{initial_prompt}",
+	"parameters" : {
+		"max_new_tokens" : 250, 
+		"temperature" : 0.2
+
+	}
+	}
+
+	print(initial_prompt)
+
+	API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+	headers = {"Authorization": "Bearer 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"}
+
+	response_COT = requests.post(API_URL, headers=headers, json=zero_COT_prompt)
+
+	zero_COT_ans= response_COT.json()[0]['generated_text'].split("[/INST]")[1]
+
+	print(zero_COT_ans)
+
+	prompt_template = f'''[INST] 
+					Try to answer this question/instruction with step-by-step thoughts 
+					and make the answer structural. Respond to the instruction directly. DO NOT add
+					any additional explanations and introducements in the answer. 
+
+					[Question] - {query}
+
+					Explain your Reasoning Step-by-Step on why you came to the conclusion. 
+					
+					[/INST]
+
+					ANSWER- {zero_COT_ans}
+
+					[INST]
+
+					I want to check if your answer is correct. Here is some additional context for you.
+
+					[CONTEXT] - {context}
+
+					You need to check if your answer is correct and if you find some errors or ignorance of
+					necessary details you need to modify your answer. If you think the context does not add
+					anything - output the original answer. Give a step by step explanation.
+					[/INST]
+
 				'''
 
 	quantization_config = BitsAndBytesConfig(
@@ -49,21 +96,23 @@ def generate_rag_response(db, query):
 
 	prompt = {
 	"inputs": f"{prompt_template}",
+	"parameters" : {
+		"max_new_tokens" : 1000, 
+		"temperature" : 0.2
+
+	}
 	}
 
 	print(prompt_template)
 
-	API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
-	headers = {"Authorization": "Bearer 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"}
-
 	response = requests.post(API_URL, headers=headers, json=prompt)
-	#print(response.json())
-	return response.json()[0]['generated_text'].split("[/INST]")[1]
+	
+	return response.json()[0]['generated_text'].split("[/INST]")[2]
 	
 
 	#print(prompt_template)
 
 
 
-query= "Can you name some really big Dinosaurs?"
+query= "Name some birds found in the Himalayas in India?"
 print(generate_rag_response(db,query))
