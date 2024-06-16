@@ -24,7 +24,7 @@ def build_cors_actual_response(response):
 
 try:
 	with open("db_list.pkl", 'rb') as db_list_pkl:
-		website_db = pickle.load(db_list_json)
+		website_db = pickle.load(db_list_pkl)
 except:
 	website_db = {}
 	print("Initializing API")
