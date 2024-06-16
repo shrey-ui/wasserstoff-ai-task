@@ -110,6 +110,21 @@ class FAISSVectorDB():
 				hist_id.write(f"{chunk_id}\n")
 		print("FAISS VECTOR DB HAS BEEN CREATED SUCCESSFULLY")
 
+	def add_to_vector_db(self, content, filename= "faiss_emb_indices.index"):
+
+		chunks= self.split_text(content)
+		for chunk in chunks:
+			self.chunks_list.append(chunk)
+			self.embeddings[len(self.embeddings.keys())] = self.embedding_model.encode(re.sub('\W+', '', chunk))
+		
+		embed_len= len(list(self.embeddings.values())[0])
+		index= faiss.IndexFlatL2(embed_len)
+		np_embed= np.array(list(self.embeddings.values())).astype(np.float32)
+		index.add(np_embed)
+		faiss.write_index(index, filename)
+		
+
+
 # function that retrieves similar posts
 
 def find_simposts_in_db(db, query, k):

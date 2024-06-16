@@ -25,9 +25,45 @@ def build_cors_actual_response(response):
 try:
 	with open("db_list.pkl", 'rb') as db_list_pkl:
 		website_db = pickle.load(db_list_pkl)
-except:
+except Exception as e:
+	print(f"{e}")
 	website_db = {}
 	print("Initializing API")
+
+
+
+@app_chatbot.route('/update-vector-db', methods = ["POST"])
+def update_vector_db():
+	
+	try:
+		if request.content_type != "application/json":
+			return build_cors_actual_response(make_response(jsonify({"error": "Content-type must be application/json"})))
+
+		print(request.method)
+		# referer= request.headers.get("Referer")
+		# if not referer:
+		# 	return jsonify({"error" : "No Referer found"}), 400
+
+		post_data = request.get_json()
+		wordpress_site_url = post_data.get('site_url')
+		post_title = post_data.get('post_title' , '')
+		post_cont = post_data.get('post_content', '')
+
+		combined_content = f"{post_title} {post_cont}"
+
+		# wordpress_site_url = referer.split('/')[2]
+		# wordpress_site_url = f"http://{wordpress_site_url}"
+
+		if wordpress_site_url in website_db:
+			website_db[wordpress_site_url].add_to_vector_db(combined_content)
+
+		return jsonify({"message" : "Vector DB Update was successful - Embeddings Created & Added"}), 200		
+
+	except Exception as e:
+		return jsonify({"message": f"Error - Vector DB update was unsuccessful - {e}"}), 500
+
+
+
 
 @app_chatbot.route('/chatbot' , methods = ['POST', 'OPTIONS'])
 def chatbot():
