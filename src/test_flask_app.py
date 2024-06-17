@@ -7,6 +7,6 @@ if __name__ == "__main__" :
 			  }
 
 	print(json.dumps(to_send))
-	response = requests.post("http://localhost:5001/chatbot", json = json.dumps(to_send))
+	response = requests.post("http://localhost:5001/chatbot", json = to_send)
 
 	print(response.text)

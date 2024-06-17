@@ -71,6 +71,7 @@ def chatbot():
 		print(request.method)
 		return build_cors_preflight_response()
 	elif request.method == "POST":
+		
 	
 		if request.content_type != "application/json":
 			
@@ -78,9 +79,9 @@ def chatbot():
 
 		print(request.method)
 
-
-		wordpress_site = json.loads(request.get_json())['wordpress_link']
-		query = json.loads(request.get_json())['query']
+		print(request.get_json())
+		wordpress_site = request.get_json()['wordpress_link']
+		query = request.get_json()['query']
 		if wordpress_site not in website_db:
 			embedding_model = "Alibaba-NLP/gte-large-en-v1.5"
 			chunk_size= 256
@@ -89,8 +90,13 @@ def chatbot():
 			db = gen_vector_db.FAISSVectorDB(wordpress_site, embedding_model, chunk_size)
 			db.init_vector_db()
 			website_db[wordpress_site] = db
+
+			if ".local" in wordpress_site:
+				wordpress_port = wordpress_site.split(".local:")[1]
+				website_db[f"http://localhost:{wordpress_port}"] = db
 			with open("db_list.pkl" , 'wb') as db_list_pkl_save:
 				pickle.dump(website_db, db_list_pkl_save)
+
 
 		db_to_get= website_db[wordpress_site]
 		
@@ -98,8 +104,8 @@ def chatbot():
 			similar_posts = gen_vector_db.find_simposts_in_db(db_to_get, query, 10)
 			response = RAG_gen.generate_rag_response(db_to_get, query, similar_posts)
 
-			json_resp = json.dumps({"chatbot_response" : response})
-
+			json_resp = jsonify({"chatbot_response" : response})
+			print(json_resp)
 			return json_resp
 		else:
 			json_resp = json.dumps({"chatbot_response" : "Please check your query. It is not what I expected!"})
