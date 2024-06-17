@@ -60,13 +60,21 @@ Please NOTE - This is not
     ```bash
     python app.py
     ```
+4. WordPress Site included - 
+    The WordPress site used for development purpose is included in the Repository
+    at wordpress/wordpress-site. The plugins are given seperately but they are in the 
+    wordpress-site location as well.
 
-4. WordPress Plugin Installation
+    You are advised to use something like Local to get the WordPress site running at Port 10003
+    for testing of the App itself.
+     
+
+5. WordPress Plugin Installation
 
     - Upload the `chatbot-plugin` directory to the `/wp-content/plugins/` directory.
     - Activate the plugin through the 'Plugins' menu in WordPress.
 
-5. Add Chatbot to WordPress
+6. Add Chatbot to WordPress
 
     The plugin automatically adds the chatbot to the footer of your WordPress site. Ensure your theme supports the `wp_footer` action.
 
