@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: Chatbot Integration
-Description: Integrates a chatbot with the WordPress site and sends queries to a Flask API.
+Plugin Name: Chatbot Integration for RAG-COT Chatbot
+Description: Integrates a chatbot with the WordPress site and sends queries to Flask API for LLM Endpoint
 Version: 1.0
-Author: Your Name
+Author: Shreyans Murkute for Wasserstoff
 */
 
 // Enqueue the chatbot JavaScript
