@@ -7,9 +7,13 @@ import faiss
 import re
 
 
-# Here it is best if we use a Pre-trained Model
-# which is pretrained and specializes in Semantic Search
-# as that is the basis of RAG
+
+# Class which completely handles the creation of the VectorDB
+# Uses FAISS of course
+# Model to generate embeddings and chunk_size can be chosen dynamically
+# Using Alibaba-NLP/gte-large-en-v1.5 to generate embeddings
+# This is the best performing lightweight embedding-gen on HuggingFace
+# https://huggingface.co/spaces/mteb/leaderboard
 
 
 
@@ -29,6 +33,7 @@ class FAISSVectorDB():
 	    for i in range(0, len(words), self.chunk_size):
 	        yield ' '.join(words[i:i+self.chunk_size])
 
+	# Downloads Blog Data
 	def get_blog_data(self, site_url):
 
 		posts = []
@@ -71,7 +76,8 @@ class FAISSVectorDB():
 				self.embeddings[len(self.embeddings.keys())] = self.embedding_model.encode(re.sub('\W+', '', chunk))
 		else:
 			print("Blog Already has Embedding Included")
-
+    
+    # creates FAISS Vector DB indices
 
 	def create_faiss(self):
 		self.get_blog_data(self.wp_site_url)
@@ -99,7 +105,7 @@ class FAISSVectorDB():
 	def load_index_db(self, filename = "faiss_emb_indices.index"):
 		return faiss.read_index(filename)
 
-		# main function that creates the db
+	# main function that creates the db
 
 	def init_vector_db(self):
 		indices_to_create = self.create_faiss()
@@ -109,6 +115,8 @@ class FAISSVectorDB():
 			for chunk_id in self.embeddings:
 				hist_id.write(f"{chunk_id}\n")
 		print("FAISS VECTOR DB HAS BEEN CREATED SUCCESSFULLY")
+
+	# Function resp. for updating embeddings when a new post is published
 
 	def add_to_vector_db(self, content, filename= "faiss_emb_indices.index"):
 
@@ -135,6 +143,8 @@ def find_simposts_in_db(db, query, k):
 	return similar_chunks
 
 if __name__ == "__main__":
+
+	 # for testing purposes
 	site_url = "http://wasserstoff-test-site.local:10003"
 	embedding_model = "Alibaba-NLP/gte-large-en-v1.5"
 	chunk_size= 256

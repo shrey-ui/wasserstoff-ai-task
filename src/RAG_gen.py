@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from transformers import RagTokenizer, RagSequenceForGeneration, RagRetriever
-from gen_vector_db import FAISSVectorDB, find_simposts_in_db
+from src.gen_vector_db import FAISSVectorDB, find_simposts_in_db
 from torch import cuda
 import torch
 import requests
@@ -8,11 +8,23 @@ import requests
 
 
 # Retrieving Similar posts and then prompting the LLM
+# Please Note that this function does COT and RAG together
+# There is a new method of combining RAG and COT - Retrieval Augmented Thoughts (RAT)
+# https://medium.com/@bijit211987/rag-chain-of-thought-retrieval-augmented-thoughts-rat-3d3489517bf0
+
+# In RAT a Zero Shot COT is the first step and the RAG based Context is used
+# to improve the Step-by-Step process rather than just using RAG based Context
+# to change the final answer.
+
+# RAT also gives the opportunity to the LLM to decide what extent of RAG Context
+# it should be inflluenced by.
 
 def generate_rag_response(db, query, sim_posts):
 
 	#sim_posts = find_simposts_in_db(db, query, 10)
 	context = ' '.join(f"{post}\n\n" for post in sim_posts)
+
+	# ZERO SHOT COT
 
 	initial_prompt = f'''[INST] 
 					Try to answer this question/instruction with step-by-step thoughts 
@@ -47,6 +59,8 @@ def generate_rag_response(db, query, sim_posts):
 
 	print(zero_COT_ans)
 
+	# GIVING ZERO SHOT COT OUTPUT AND ADDING RAG BASED CONTEXT
+
 	prompt_template = f'''[INST] 
 					Try to answer this question/instruction with step-by-step thoughts 
 					and make the answer structural. Respond to the instruction directly. DO NOT add
@@ -73,12 +87,7 @@ def generate_rag_response(db, query, sim_posts):
 
 				'''
 
-	quantization_config = BitsAndBytesConfig(
-				load_in_4bit= True, 
-				bnb_4bit_quant_type= "nf4",
-				bnb_4bit_compute_dtype = "float16"
 
-		)
 
 	auth_token = "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"
 
@@ -104,9 +113,8 @@ def generate_rag_response(db, query, sim_posts):
 
 if __name__ == "__main__":
 
-	print("dfdg")
-
-	device= f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
+	
+	# for test purposes
 
 	site_url = "http://wasserstoff-test-site.local:10003"
 	embedding_model = "Alibaba-NLP/gte-large-en-v1.5"
