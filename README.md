@@ -1,4 +1,6 @@
-# WordPress Chatbot Integration
+#WASSERSTOFF-AI-TASK
+
+## WordPress Chatbot Integration
 
 This project integrates a Query Suggestion Chatbot with Chain of Thought functionality into WordPress sites using a Flask backend.
 
@@ -39,8 +41,8 @@ Please NOTE - This is not
 1. Clone the Repository
 
     ```bash
-    git clone https://github.com/shrey-ui/WordPressChatbot.git
-    cd WordPressChatbot
+    git clone https://github.com/shrey-ui/wasserstoff-ai-task.git
+    cd wasserstoff-ai-task
     ```
 
 2. Install Python Packages
