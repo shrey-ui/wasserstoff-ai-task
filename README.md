@@ -1,7 +1,3 @@
-# Wasserstoff-ai-task
-
-This is the public Repo for the Wasserstoff AI-Task as instructed
-
 # WordPress Chatbot Integration
 
 This project integrates a Query Suggestion Chatbot with Chain of Thought functionality into WordPress sites using a Flask backend.
@@ -43,8 +39,8 @@ Please NOTE - This is not
 1. Clone the Repository
 
     ```bash
-    git clone https://github.com/shrey-ui/wasserstoff-ai-task.git
-    cd wasserstoff-ai-task
+    git clone https://github.com/shrey-ui/WordPressChatbot.git
+    cd WordPressChatbot
     ```
 
 2. Install Python Packages
@@ -67,7 +63,7 @@ Please NOTE - This is not
 
     You are advised to use something like Local to get the WordPress site running at Port 10003
     for testing of the App itself.
-     
+
 
 5. WordPress Plugin Installation
 
@@ -114,7 +110,7 @@ No additional configuration is required for the WordPress plugin. It automatical
 
 ### Flask Backend
 
-- `app.py`: Main Flask application file.
+- `chatbot_flask_api.py.py`: Main Flask application file.
 - `gen_vector_db.py`: Module for generating and managing the vector database.
 - `RAG_gen.py`: Module for handling RAG and Chain of Thought reasoning.
 
